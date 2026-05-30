@@ -1,4 +1,4 @@
-modules = ["nodejs-24"]
+modules = ["nodejs-24", "postgresql-16"]
 
 [deployment]
 router = "application"
@@ -18,3 +18,26 @@ expertMode = true
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 20000
+
+[[ports]]
+localPort = 8080
+externalPort = 80
+
+[[ports]]
+localPort = 8081
+externalPort = 8081
+
+[[ports]]
+localPort = 20130
+externalPort = 3000
+
+[userenv]
+
+[userenv.shared]
+JWT_SECRET = "our_empire_jwt_secret_2026_secure_key_x9z"
+JWT_REFRESH_SECRET = "our_empire_refresh_secret_2026_key_y8w"
+ADMIN_DEFAULT_PASSWORD = "admin123"
+NODE_ENV = "development"
+
+[nix]
+channel = "stable-25_05"

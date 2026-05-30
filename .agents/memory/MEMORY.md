@@ -1,0 +1,2 @@
+- [Admin auth setup](admin-auth.md) — JWT token in localStorage `adminToken`; use `setAuthTokenGetter` from api-client-react, NOT axios globals
+- [Typecheck order](typecheck-order.md) — always run `typecheck:libs` before leaf packages; DB/API libs must build first

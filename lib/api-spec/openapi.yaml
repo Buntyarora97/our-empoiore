@@ -3,20 +3,33 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Our Empire Satta Matka API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: markets
+    description: Market operations
+  - name: bets
+    description: Betting operations
+  - name: wallet
+    description: Wallet operations
+  - name: results
+    description: Result operations
+  - name: user
+    description: User profile
+  - name: admin
+    description: Admin operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +37,1737 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # AUTH
+  /auth/register:
+    post:
+      operationId: registerUser
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: loginUser
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/refresh:
+    post:
+      operationId: refreshToken
+      tags: [auth]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+
+  /auth/forgot-password:
+    post:
+      operationId: forgotPassword
+      tags: [auth]
+      summary: Request password reset OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordInput"
+      responses:
+        "200":
+          description: OTP sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/reset-password:
+    post:
+      operationId: resetPassword
+      tags: [auth]
+      summary: Reset password with OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordInput"
+      responses:
+        "200":
+          description: Password reset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # USER
+  /user/profile:
+    get:
+      operationId: getProfile
+      tags: [user]
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    put:
+      operationId: updateProfile
+      tags: [user]
+      summary: Update profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /user/balance:
+    get:
+      operationId: getBalance
+      tags: [user]
+      summary: Get user wallet balance
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BalanceResponse"
+
+  /user/change-password:
+    post:
+      operationId: changePassword
+      tags: [user]
+      summary: Change password
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordInput"
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /user/referrals:
+    get:
+      operationId: getReferrals
+      tags: [user]
+      summary: Get user referrals
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Referral"
+
+  /user/analytics:
+    get:
+      operationId: getUserAnalytics
+      tags: [user]
+      summary: Get user betting analytics
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserAnalytics"
+
+  /user/notifications:
+    get:
+      operationId: getUserNotifications
+      tags: [user]
+      summary: Get user notifications
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /user/notifications/read-all:
+    post:
+      operationId: markAllNotificationsRead
+      tags: [user]
+      summary: Mark all notifications as read
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # MARKETS
+  /markets:
+    get:
+      operationId: getMarkets
+      tags: [markets]
+      summary: Get all active markets
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Market"
+
+  /markets/{id}:
+    get:
+      operationId: getMarket
+      tags: [markets]
+      summary: Get market by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Market"
+
+  /markets/{id}/results:
+    get:
+      operationId: listMarketResults
+      tags: [markets]
+      summary: Get market results
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Result"
+
+  # BETS
+  /bets/place:
+    post:
+      operationId: placeBet
+      tags: [bets]
+      summary: Place a bet
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BetInput"
+      responses:
+        "201":
+          description: Bet placed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bet"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /bets/my-bets:
+    get:
+      operationId: getMyBets
+      tags: [bets]
+      summary: Get user bets
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: marketId
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Bet"
+
+  /bets/winnings:
+    get:
+      operationId: getWinnings
+      tags: [bets]
+      summary: Get user winnings
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WinningsResponse"
+
+  /bets/{id}/cancel:
+    post:
+      operationId: cancelBet
+      tags: [bets]
+      summary: Cancel a pending bet
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # WALLET
+  /wallet/add-money:
+    post:
+      operationId: requestAddMoney
+      tags: [wallet]
+      summary: Request to add money
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddMoneyInput"
+      responses:
+        "201":
+          description: Request created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+
+  /wallet/withdraw:
+    post:
+      operationId: requestWithdrawal
+      tags: [wallet]
+      summary: Request withdrawal
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WithdrawalInput"
+      responses:
+        "201":
+          description: Request created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+
+  /wallet/transactions:
+    get:
+      operationId: getTransactions
+      tags: [wallet]
+      summary: Get transaction history
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+
+  /wallet/upi-info:
+    get:
+      operationId: getUpiInfo
+      tags: [wallet]
+      summary: Get UPI payment info for current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpiInfo"
+
+  # RESULTS
+  /results/recent:
+    get:
+      operationId: getRecentResults
+      tags: [results]
+      summary: Get recent results across all markets
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Result"
+
+  # ADMIN AUTH
+  /admin/auth/login:
+    post:
+      operationId: adminLogin
+      tags: [admin]
+      summary: Admin login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminLoginInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAuthResponse"
+
+  # ADMIN DASHBOARD
+  /admin/dashboard:
+    get:
+      operationId: getAdminDashboard
+      tags: [admin]
+      summary: Get admin dashboard stats
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDashboard"
+
+  # ADMIN USERS
+  /admin/users:
+    get:
+      operationId: adminGetUsers
+      tags: [admin]
+      summary: Get all users
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUsersResponse"
+
+  /admin/users/{id}:
+    get:
+      operationId: adminGetUser
+      tags: [admin]
+      summary: Get user details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDetail"
+
+  /admin/users/{id}/status:
+    put:
+      operationId: adminUpdateUserStatus
+      tags: [admin]
+      summary: Update user status (block/unblock)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserStatusUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /admin/users/{id}/balance:
+    put:
+      operationId: adminUpdateUserBalance
+      tags: [admin]
+      summary: Manually adjust user balance
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BalanceAdjust"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # ADMIN MARKETS
+  /admin/markets:
+    get:
+      operationId: adminGetMarkets
+      tags: [admin]
+      summary: Get all markets (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Market"
+    post:
+      operationId: adminCreateMarket
+      tags: [admin]
+      summary: Create a market
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MarketInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Market"
+
+  /admin/markets/{id}:
+    put:
+      operationId: adminUpdateMarket
+      tags: [admin]
+      summary: Update a market
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MarketUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Market"
+    delete:
+      operationId: adminDeleteMarket
+      tags: [admin]
+      summary: Delete a market
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ADMIN RESULTS
+  /admin/results:
+    post:
+      operationId: adminAddResult
+      tags: [admin]
+      summary: Add/declare result for a market
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResultInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Result"
+
+  /admin/results/{id}:
+    put:
+      operationId: adminUpdateResult
+      tags: [admin]
+      summary: Update a result
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResultUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Result"
+
+  # ADMIN TRANSACTIONS
+  /admin/transactions/deposits:
+    get:
+      operationId: adminGetDeposits
+      tags: [admin]
+      summary: Get all deposit requests
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTransactionsResponse"
+
+  /admin/transactions/deposits/{id}/approve:
+    put:
+      operationId: adminApproveDeposit
+      tags: [admin]
+      summary: Approve a deposit
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /admin/transactions/deposits/{id}/reject:
+    put:
+      operationId: adminRejectDeposit
+      tags: [admin]
+      summary: Reject a deposit
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectInput"
+      responses:
+        "200":
+          description: Rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /admin/transactions/withdrawals:
+    get:
+      operationId: adminGetWithdrawals
+      tags: [admin]
+      summary: Get all withdrawal requests
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTransactionsResponse"
+
+  /admin/transactions/withdrawals/{id}/complete:
+    put:
+      operationId: adminCompleteWithdrawal
+      tags: [admin]
+      summary: Mark withdrawal as completed
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /admin/transactions/withdrawals/{id}/reject:
+    put:
+      operationId: adminRejectWithdrawal
+      tags: [admin]
+      summary: Reject a withdrawal
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectInput"
+      responses:
+        "200":
+          description: Rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # ADMIN BETS
+  /admin/bets:
+    get:
+      operationId: adminGetBets
+      tags: [admin]
+      summary: Get all bets
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: marketId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: userId
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminBetsResponse"
+
+  /admin/bets/analytics:
+    get:
+      operationId: adminGetBetAnalytics
+      tags: [admin]
+      summary: Get betting analytics
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: marketId
+          in: query
+          schema:
+            type: integer
+        - name: date
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BetAnalytics"
+
+  # ADMIN SETTINGS
+  /admin/settings:
+    get:
+      operationId: adminGetSettings
+      tags: [admin]
+      summary: Get app settings
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppSettings"
+    put:
+      operationId: adminUpdateSettings
+      tags: [admin]
+      summary: Update app settings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppSettingsUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppSettings"
+
+  /admin/notifications/send:
+    post:
+      operationId: adminSendNotification
+      tags: [admin]
+      summary: Send notification
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationInput"
+      responses:
+        "200":
+          description: Sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /admin/analytics/revenue:
+    get:
+      operationId: adminGetRevenueAnalytics
+      tags: [admin]
+      summary: Get revenue analytics
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RevenueAnalytics"
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    MessageResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+
+    RegisterInput:
+      type: object
+      required: [fullName, phone, password]
+      properties:
+        fullName:
+          type: string
+        phone:
+          type: string
+        email:
+          type: ["string", "null"]
+        password:
+          type: string
+        referralCode:
+          type: ["string", "null"]
+
+    LoginInput:
+      type: object
+      required: [phone, password]
+      properties:
+        phone:
+          type: string
+        password:
+          type: string
+
+    RefreshInput:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+
+    ForgotPasswordInput:
+      type: object
+      required: [phone]
+      properties:
+        phone:
+          type: string
+
+    ResetPasswordInput:
+      type: object
+      required: [phone, otp, newPassword]
+      properties:
+        phone:
+          type: string
+        otp:
+          type: string
+        newPassword:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [accessToken, refreshToken, user]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+
+    TokenResponse:
+      type: object
+      required: [accessToken]
+      properties:
+        accessToken:
+          type: string
+
+    AdminLoginInput:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    AdminAuthResponse:
+      type: object
+      required: [accessToken, admin]
+      properties:
+        accessToken:
+          type: string
+        admin:
+          $ref: "#/components/schemas/AdminUser"
+
+    User:
+      type: object
+      required: [id, fullName, phone, balance, status, createdAt]
+      properties:
+        id:
+          type: integer
+        fullName:
+          type: string
+        phone:
+          type: string
+        email:
+          type: ["string", "null"]
+        balance:
+          type: string
+        referralCode:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+
+    UserUpdate:
+      type: object
+      properties:
+        fullName:
+          type: string
+        email:
+          type: ["string", "null"]
+
+    UserDetail:
+      type: object
+      required: [id, fullName, phone, balance, status, createdAt]
+      properties:
+        id:
+          type: integer
+        fullName:
+          type: string
+        phone:
+          type: string
+        email:
+          type: ["string", "null"]
+        balance:
+          type: string
+        referralCode:
+          type: string
+        referredBy:
+          type: ["integer", "null"]
+        status:
+          type: string
+        createdAt:
+          type: string
+        totalBets:
+          type: integer
+        totalDeposits:
+          type: string
+        totalWithdrawals:
+          type: string
+
+    AdminUser:
+      type: object
+      required: [id, username, role]
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        role:
+          type: string
+
+    BalanceResponse:
+      type: object
+      required: [balance]
+      properties:
+        balance:
+          type: string
+
+    ChangePasswordInput:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+
+    Referral:
+      type: object
+      required: [id, fullName, phone, createdAt, earnings]
+      properties:
+        id:
+          type: integer
+        fullName:
+          type: string
+        phone:
+          type: string
+        createdAt:
+          type: string
+        earnings:
+          type: string
+
+    UserAnalytics:
+      type: object
+      required: [totalBets, totalWagered, totalWon, totalLost, winRate]
+      properties:
+        totalBets:
+          type: integer
+        totalWagered:
+          type: string
+        totalWon:
+          type: string
+        totalLost:
+          type: string
+        winRate:
+          type: number
+        favoriteMarket:
+          type: ["string", "null"]
+        profitLoss:
+          type: string
+
+    Notification:
+      type: object
+      required: [id, title, message, isRead, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        message:
+          type: string
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
+
+    Market:
+      type: object
+      required: [id, name, openTime, closeTime, status, minBet, maxBet]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        openTime:
+          type: string
+        closeTime:
+          type: string
+        status:
+          type: string
+        minBet:
+          type: string
+        maxBet:
+          type: string
+        isBettingOpen:
+          type: boolean
+        todayResult:
+          $ref: "#/components/schemas/Result"
+          nullable: true
+
+    MarketInput:
+      type: object
+      required: [name, openTime, closeTime]
+      properties:
+        name:
+          type: string
+        openTime:
+          type: string
+        closeTime:
+          type: string
+        minBet:
+          type: string
+        maxBet:
+          type: string
+        status:
+          type: string
+
+    MarketUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        openTime:
+          type: string
+        closeTime:
+          type: string
+        minBet:
+          type: string
+        maxBet:
+          type: string
+        status:
+          type: string
+
+    BetInput:
+      type: object
+      required: [marketId, gameType, numbers, totalAmount]
+      properties:
+        marketId:
+          type: integer
+        gameType:
+          type: string
+          enum: [jantri, open, crossing, no_to_no]
+        numbers:
+          type: array
+          items:
+            $ref: "#/components/schemas/BetNumber"
+        totalAmount:
+          type: string
+
+    BetNumber:
+      type: object
+      required: [number, amount]
+      properties:
+        number:
+          type: string
+        amount:
+          type: string
+
+    Bet:
+      type: object
+      required: [id, marketId, gameType, numbers, totalAmount, status, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        marketId:
+          type: integer
+        marketName:
+          type: string
+        gameType:
+          type: string
+        numbers:
+          type: array
+          items:
+            $ref: "#/components/schemas/BetNumber"
+        totalAmount:
+          type: string
+        status:
+          type: string
+        winAmount:
+          type: string
+        createdAt:
+          type: string
+
+    WinningsResponse:
+      type: object
+      required: [totalWinnings, bets]
+      properties:
+        totalWinnings:
+          type: string
+        bets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Bet"
+
+    Result:
+      type: object
+      required: [id, marketId, date, status]
+      properties:
+        id:
+          type: integer
+        marketId:
+          type: integer
+        marketName:
+          type: string
+        date:
+          type: string
+        openNumber:
+          type: ["string", "null"]
+        closeNumber:
+          type: ["string", "null"]
+        jodiNumber:
+          type: ["string", "null"]
+        status:
+          type: string
+
+    ResultInput:
+      type: object
+      required: [marketId, date]
+      properties:
+        marketId:
+          type: integer
+        date:
+          type: string
+        openNumber:
+          type: ["string", "null"]
+        closeNumber:
+          type: ["string", "null"]
+        jodiNumber:
+          type: ["string", "null"]
+        status:
+          type: string
+
+    ResultUpdate:
+      type: object
+      properties:
+        openNumber:
+          type: ["string", "null"]
+        closeNumber:
+          type: ["string", "null"]
+        jodiNumber:
+          type: ["string", "null"]
+        status:
+          type: string
+
+    Transaction:
+      type: object
+      required: [id, userId, type, amount, status, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+        amount:
+          type: string
+        status:
+          type: string
+        method:
+          type: ["string", "null"]
+        utrNumber:
+          type: ["string", "null"]
+        adminNote:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        userName:
+          type: ["string", "null"]
+
+    AddMoneyInput:
+      type: object
+      required: [amount, utrNumber]
+      properties:
+        amount:
+          type: string
+        utrNumber:
+          type: string
+        method:
+          type: string
+
+    WithdrawalInput:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: string
+        method:
+          type: string
+        upiId:
+          type: ["string", "null"]
+        accountNumber:
+          type: ["string", "null"]
+        ifscCode:
+          type: ["string", "null"]
+        accountHolderName:
+          type: ["string", "null"]
+
+    UpiInfo:
+      type: object
+      required: [upiId]
+      properties:
+        upiId:
+          type: string
+        qrCodeUrl:
+          type: ["string", "null"]
+
+    AdminDashboard:
+      type: object
+      required: [totalUsers, totalBetsToday, totalAmountToday, pendingDeposits, pendingWithdrawals, activeMarkets]
+      properties:
+        totalUsers:
+          type: integer
+        newUsersToday:
+          type: integer
+        totalBetsToday:
+          type: integer
+        totalAmountToday:
+          type: string
+        pendingDeposits:
+          type: integer
+        pendingWithdrawals:
+          type: integer
+        activeMarkets:
+          type: integer
+        totalRevenue:
+          type: string
+
+    AdminUsersResponse:
+      type: object
+      required: [users, total]
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserDetail"
+        total:
+          type: integer
+
+    UserStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+
+    BalanceAdjust:
+      type: object
+      required: [amount, reason]
+      properties:
+        amount:
+          type: string
+        reason:
+          type: string
+
+    AdminTransactionsResponse:
+      type: object
+      required: [transactions, total]
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+        total:
+          type: integer
+
+    AdminBetsResponse:
+      type: object
+      required: [bets, total]
+      properties:
+        bets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Bet"
+        total:
+          type: integer
+
+    BetAnalytics:
+      type: object
+      required: [totalBets, totalAmount, numberStats]
+      properties:
+        totalBets:
+          type: integer
+        totalAmount:
+          type: string
+        numberStats:
+          type: array
+          items:
+            $ref: "#/components/schemas/NumberStat"
+
+    NumberStat:
+      type: object
+      required: [number, betCount, totalAmount]
+      properties:
+        number:
+          type: string
+        betCount:
+          type: integer
+        totalAmount:
+          type: string
+
+    AppSettings:
+      type: object
+      required: [appName, whatsappNumber, telegramLink]
+      properties:
+        appName:
+          type: string
+        whatsappNumber:
+          type: string
+        telegramLink:
+          type: string
+        maintenanceMode:
+          type: boolean
+        minDeposit:
+          type: string
+        minWithdrawal:
+          type: string
+        referralCommission:
+          type: string
+        upiIds:
+          type: array
+          items:
+            type: string
+
+    AppSettingsUpdate:
+      type: object
+      properties:
+        appName:
+          type: string
+        whatsappNumber:
+          type: string
+        telegramLink:
+          type: string
+        maintenanceMode:
+          type: boolean
+        minDeposit:
+          type: string
+        minWithdrawal:
+          type: string
+        referralCommission:
+          type: string
+        upiIds:
+          type: array
+          items:
+            type: string
+
+    NotificationInput:
+      type: object
+      required: [title, message]
+      properties:
+        title:
+          type: string
+        message:
+          type: string
+        targetType:
+          type: string
+        targetUserIds:
+          type: array
+          items:
+            type: integer
+
+    RejectInput:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+
+    RevenueAnalytics:
+      type: object
+      required: [period, data, totalRevenue]
+      properties:
+        period:
+          type: string
+        totalRevenue:
+          type: string
+        totalDeposits:
+          type: string
+        totalWithdrawals:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/RevenuePeriod"
+
+    RevenuePeriod:
+      type: object
+      required: [date, revenue, deposits, withdrawals]
+      properties:
+        date:
+          type: string
+        revenue:
+          type: string
+        deposits:
+          type: string
+        withdrawals:
+          type: string
