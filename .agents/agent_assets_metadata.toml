@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "E6x_hUGIq4o5qkaw3nAmf"
+uri = "file://artifacts/player-app/assets/images/icon.png"
+type = "image"
+title = "our-empire-crown-icon"
