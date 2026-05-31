@@ -1,69 +1,60 @@
 #!/bin/bash
 # ============================================================
 # Our Empire — GitHub Push Script
-# Run this from the project root directory
+# Run from the project root: bash scripts/push-to-github.sh
 # ============================================================
 set -e
 
-REPO_URL="https://github.com/Buntyarora97/our-empoiore.git"
+GITHUB_USER="Buntyarora97"
+REPO_NAME="our-empoiore"   # Your GitHub repo name
+REPO_URL="https://github.com/${GITHUB_USER}/${REPO_NAME}.git"
 
+echo ""
 echo "🚀 Our Empire — GitHub Push"
 echo "================================"
 echo "Repository: $REPO_URL"
 echo ""
 
-# Check if git is available
-if ! command -v git &> /dev/null; then
-  echo "❌ git not found. Please install git first."
+# Ask for PAT securely (hidden input)
+echo "Enter your GitHub Personal Access Token (PAT):"
+echo "(To create one: GitHub → Settings → Developer settings → Personal access tokens → Fine-grained → New token)"
+echo "(Required permission: Contents → Read and write)"
+echo ""
+read -s -p "PAT: " GITHUB_PAT
+echo ""
+
+if [ -z "$GITHUB_PAT" ]; then
+  echo "❌ No PAT entered. Exiting."
   exit 1
 fi
 
-# Configure git user (change these if needed)
-git config user.name "Buntyarora97"
-git config user.email "buntyarora97@users.noreply.github.com"
+# Build authenticated URL
+AUTH_URL="https://${GITHUB_USER}:${GITHUB_PAT}@github.com/${GITHUB_USER}/${REPO_NAME}.git"
 
-# Add GitHub remote (replace existing if any)
+# Configure git user
+git config user.name "$GITHUB_USER"
+git config user.email "${GITHUB_USER}@users.noreply.github.com"
+
+# Set up remotes
+git remote remove origin 2>/dev/null || true
 git remote remove github 2>/dev/null || true
-git remote add github "$REPO_URL"
+git remote add origin "$AUTH_URL"
 
-echo "📦 Staging all files..."
+echo "📦 Staging all changes..."
 git add -A
 
-echo "💾 Creating commit..."
-git commit -m "feat: complete Our Empire Satta Matka platform
-
-- Admin Panel (React + Vite + Tailwind + shadcn/ui)
-  - Login, Dashboard, Users, Markets, Results
-  - Deposits, Withdrawals, Bets, Analytics
-  - Settings, Notifications pages
-  - Production build in artifacts/admin-panel/dist/public/
-
-- API Server (Node.js + Express 5 + Drizzle ORM)
-  - Full REST API with JWT auth
-  - PostgreSQL schema (users, markets, bets, transactions, etc.)
-  - Ready for Render.com deployment
-
-- Player App (Expo React Native)
-  - Login/Register, Markets, Bet Placement
-  - Wallet (Deposit/Withdraw), Profile
-  - Dark theme with green brand palette
-
-- Deployment configs:
-  - render.yaml for API server on Render
-  - Admin dist for Hostinger upload
-  - Neon DB migration script
-  - Full DEPLOYMENT.md guide" || echo "Nothing new to commit"
+echo "💾 Committing..."
+git commit -m "chore: sync Our Empire platform to GitHub" 2>/dev/null || echo "  (nothing new to commit, pushing existing commits)"
 
 echo ""
-echo "📤 Pushing to GitHub..."
-echo "You will be asked for your GitHub username and Personal Access Token (PAT)"
-echo ""
-echo "To create a PAT: GitHub → Settings → Developer Settings → Personal Access Tokens → Generate new token"
-echo "Required permissions: repo (full control)"
-echo ""
-
-git push github main --force
+echo "📤 Force-pushing to GitHub (this overwrites the remote with Replit's version)..."
+git push origin main --force
 
 echo ""
-echo "✅ Successfully pushed to GitHub!"
-echo "🔗 View at: https://github.com/Buntyarora97/our-empoiore"
+echo "✅ Done! Your code is live on GitHub."
+echo "🔗 https://github.com/${GITHUB_USER}/${REPO_NAME}"
+echo ""
+
+# Clean up PAT from URL — replace with token-free URL for future reads
+git remote set-url origin "$REPO_URL"
+echo "🔒 PAT removed from git config (replaced with public URL)."
