@@ -42,6 +42,7 @@ JWT_SECRET = "our_empire_jwt_secret_2026_secure_key_x9z"
 JWT_REFRESH_SECRET = "our_empire_refresh_secret_2026_key_y8w"
 ADMIN_DEFAULT_PASSWORD = "admin123"
 NODE_ENV = "development"
+NEON_DATABASE_URL = "postgresql://neondb_owner:npg_eA9HQyPmhOM2@ep-muddy-pond-aqvn8uhn.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require"
 
 [nix]
 channel = "stable-25_05"
