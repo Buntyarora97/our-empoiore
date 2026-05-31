@@ -41,8 +41,14 @@ Tables created: `users`, `markets`, `bets`, `transactions`, `results`, `admins`,
 2. Click **New** → **Web Service**
 3. Connect your GitHub repo: `Buntyarora97/our-empoiore`
 4. Set **Root Directory**: `artifacts/api-server`
-5. Set **Build Command**: `npm install && npm run build`
-6. Set **Start Command**: `npm run start`
+5. Set **Build Command**:
+   ```
+   corepack enable pnpm && pnpm install --frozen-lockfile && pnpm run typecheck:libs && pnpm --filter @workspace/api-server run build
+   ```
+6. Set **Start Command**:
+   ```
+   pnpm --filter @workspace/api-server run start
+   ```
 7. Set these **Environment Variables**:
 
 | Variable | Value |
