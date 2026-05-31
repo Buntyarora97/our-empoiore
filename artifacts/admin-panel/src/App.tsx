@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
 import { initAuth, isAuthenticated } from "@/lib/auth";
+import { setBaseUrl } from "@workspace/api-client-react";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
 import DashboardPage from "@/pages/dashboard";
@@ -58,6 +59,11 @@ function Router() {
       <Route component={NotFound} />
     </Switch>
   );
+}
+
+const apiUrl = import.meta.env.VITE_API_URL as string | undefined;
+if (apiUrl) {
+  setBaseUrl(apiUrl);
 }
 
 function App() {

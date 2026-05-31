@@ -1,0 +1,50 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-api:
+    name: Deploy API to Render
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Deploy
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+  build-admin:
+    name: Build Admin Panel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build libs
+        run: pnpm run typecheck:libs
+
+      - name: Build Admin Panel
+        run: pnpm --filter @workspace/admin-panel run build
+        env:
+          PORT: 3000
+          BASE_PATH: /
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+      - name: Upload Admin Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-panel-dist
+          path: artifacts/admin-panel/dist/public/
+          retention-days: 7

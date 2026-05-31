@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: our-empire-api
+    runtime: node
+    region: singapore
+    plan: free
+    buildCommand: "npm install -g pnpm && pnpm install --frozen-lockfile && pnpm run typecheck:libs && pnpm --filter @workspace/api-server run build"
+    startCommand: "pnpm --filter @workspace/api-server run start"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_DEFAULT_PASSWORD
+        sync: false
+    healthCheckPath: /api/healthz
