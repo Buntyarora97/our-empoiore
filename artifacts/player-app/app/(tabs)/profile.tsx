@@ -6,6 +6,7 @@ import {
 } from '@workspace/api-client-react';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
+import { Linking } from 'react-native';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -262,6 +263,52 @@ export default function ProfileScreen() {
       fontFamily: 'Inter_600SemiBold',
       color: colors.destructive,
     },
+    supportCard: {
+      marginHorizontal: 16,
+      backgroundColor: colors.card,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: 'hidden',
+      marginBottom: 12,
+    },
+    supportTitle: {
+      fontSize: 13,
+      fontFamily: 'Inter_700Bold',
+      color: colors.mutedForeground,
+      letterSpacing: 0.8,
+      paddingHorizontal: 14,
+      paddingTop: 12,
+      paddingBottom: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    supportBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingHorizontal: 14,
+      paddingVertical: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    supportBtnLast: {
+      borderBottomWidth: 0,
+    },
+    supportEmoji: {
+      fontSize: 22,
+    },
+    supportBtnText: {
+      fontSize: 14,
+      fontFamily: 'Inter_600SemiBold',
+      color: colors.foreground,
+    },
+    supportBtnSub: {
+      fontSize: 11,
+      fontFamily: 'Inter_400Regular',
+      color: colors.mutedForeground,
+      marginTop: 1,
+    },
   });
 
   const displayUser = profile ?? user;
@@ -372,6 +419,36 @@ export default function ProfileScreen() {
               <Text style={[s.notifMsg, { textAlign: 'center' }]}>No notifications</Text>
             </View>
           ) : null}
+        </View>
+
+        <View style={s.supportCard}>
+          <Text style={s.supportTitle}>SUPPORT</Text>
+          <TouchableOpacity
+            style={s.supportBtn}
+            onPress={() => {
+              const num = process.env.EXPO_PUBLIC_WHATSAPP_NUMBER ?? '919999999999';
+              void Linking.openURL(`https://wa.me/${num}`);
+            }}
+          >
+            <Text style={s.supportEmoji}>💬</Text>
+            <View>
+              <Text style={s.supportBtnText}>WhatsApp Support</Text>
+              <Text style={s.supportBtnSub}>Chat with us for instant help</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[s.supportBtn, s.supportBtnLast]}
+            onPress={() => {
+              const link = process.env.EXPO_PUBLIC_TELEGRAM_LINK ?? 'https://t.me/ourempire';
+              void Linking.openURL(link);
+            }}
+          >
+            <Text style={s.supportEmoji}>✈️</Text>
+            <View>
+              <Text style={s.supportBtnText}>Telegram Channel</Text>
+              <Text style={s.supportBtnSub}>Join for results & announcements</Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={s.logoutBtn} onPress={handleLogout}>

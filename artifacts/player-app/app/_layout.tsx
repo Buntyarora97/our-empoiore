@@ -18,7 +18,10 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { getToken } from '@/lib/auth-token';
 
-setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
+const apiBase = process.env.EXPO_PUBLIC_API_URL
+  ? process.env.EXPO_PUBLIC_API_URL.replace(/\/+$/, '')
+  : `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
+setBaseUrl(apiBase);
 setAuthTokenGetter(getToken);
 
 SplashScreen.preventAutoHideAsync();

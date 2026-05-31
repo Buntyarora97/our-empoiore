@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Our Empire – Satta Matka App</title>
+  <meta name="description" content="India's most trusted Satta Matka platform. Play safely, win big. Download the Our Empire app now." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #4f7c3f;
+      --green-light: #6ca854;
+      --green-glow: rgba(79,124,63,0.25);
+      --bg: #0a0a0a;
+      --card: #111111;
+      --border: #1e1e1e;
+      --text: #f0f0f0;
+      --muted: #888;
+      --gold: #f0c040;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: rgba(10,10,10,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--green-light);
+      letter-spacing: 0.5px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .nav-cta:hover { background: var(--green-light); }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, var(--green-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(79,124,63,0.15);
+      border: 1px solid rgba(79,124,63,0.4);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--green-light);
+      letter-spacing: 0.5px;
+      margin-bottom: 24px;
+    }
+    .hero-badge::before { content: '●'; font-size: 8px; }
+    h1 {
+      font-size: clamp(36px, 7vw, 72px);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -1px;
+      margin-bottom: 20px;
+    }
+    h1 span { color: var(--green-light); }
+    .hero-sub {
+      font-size: clamp(15px, 2.5vw, 19px);
+      color: var(--muted);
+      max-width: 520px;
+      line-height: 1.6;
+      margin-bottom: 40px;
+    }
+    .hero-btns {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--green);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 12px;
+      padding: 16px 32px;
+      font-size: 16px;
+      font-weight: 700;
+      transition: all 0.2s;
+      box-shadow: 0 0 30px var(--green-glow);
+    }
+    .btn-primary:hover {
+      background: var(--green-light);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 40px var(--green-glow);
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--green); color: var(--green-light); }
+    .hero-stats {
+      display: flex;
+      gap: 40px;
+      margin-top: 64px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .stat {
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--green-light);
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    /* FEATURES */
+    .section {
+      padding: 80px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .section-tag {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--green-light);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    h2 {
+      font-size: clamp(24px, 4vw, 40px);
+      font-weight: 800;
+      margin-bottom: 48px;
+      line-height: 1.2;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .feature-card:hover {
+      border-color: var(--green);
+      transform: translateY(-4px);
+    }
+    .feature-icon {
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+    .feature-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .feature-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* HOW IT WORKS */
+    .how-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0;
+    }
+    .how-step {
+      text-align: center;
+      padding: 32px 24px;
+      position: relative;
+    }
+    .how-step::after {
+      content: '→';
+      position: absolute;
+      right: -12px;
+      top: 40px;
+      font-size: 24px;
+      color: var(--green);
+    }
+    .how-step:last-child::after { display: none; }
+    .step-num {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(79,124,63,0.15);
+      border: 2px solid var(--green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--green-light);
+      margin: 0 auto 16px;
+    }
+    .step-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .step-desc {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* DOWNLOAD */
+    .download-section {
+      background: linear-gradient(135deg, rgba(79,124,63,0.1) 0%, rgba(10,10,10,0) 100%);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 64px 32px;
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .download-title {
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 900;
+      margin-bottom: 16px;
+    }
+    .download-sub {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 36px;
+    }
+    .apk-note {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 16px;
+    }
+    .apk-note a { color: var(--green-light); }
+
+    /* CONTACT */
+    .contact-cards {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 32px;
+    }
+    .contact-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 24px;
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.2s;
+      font-weight: 600;
+    }
+    .contact-card:hover { border-color: var(--green); color: var(--green-light); }
+    .contact-card .icon { font-size: 24px; }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    footer strong { color: var(--green-light); }
+
+    /* RESPONSIVE */
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .how-step::after { display: none; }
+      .how-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-logo">🎯 Our Empire</div>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#download">Download</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <a href="#download" class="nav-cta">Download APK</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">India's Trusted Satta Matka Platform</div>
+    <h1>Play Smart,<br /><span>Win Big</span></h1>
+    <p class="hero-sub">
+      Our Empire brings you live markets, instant results, and secure payments — all in one powerful app built for true players.
+    </p>
+    <div class="hero-btns">
+      <a href="#download" class="btn-primary">
+        📱 Download APK Free
+      </a>
+      <a href="#how" class="btn-secondary">
+        How it works →
+      </a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-value">100%</div>
+        <div class="stat-label">SECURE PAYMENTS</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">Live</div>
+        <div class="stat-label">MARKET RESULTS</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">24/7</div>
+        <div class="stat-label">SUPPORT</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">Fast</div>
+        <div class="stat-label">WITHDRAWALS</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="section" id="features">
+    <p class="section-tag">Why Choose Us</p>
+    <h2>Everything you need to play</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">Live Markets</div>
+        <div class="feature-desc">Real-time market status with live Open, Jodi, and Close results updated instantly.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📈</div>
+        <div class="feature-title">Complete Result History</div>
+        <div class="feature-desc">Full historical results for every market — see patterns and make informed decisions.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💸</div>
+        <div class="feature-title">Instant UPI Deposits</div>
+        <div class="feature-desc">Add money in seconds via UPI. Admin approvals are fast so you never miss a game.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏧</div>
+        <div class="feature-title">Fast Withdrawals</div>
+        <div class="feature-desc">Withdraw your winnings directly to your UPI or bank account. Safe and swift.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎮</div>
+        <div class="feature-title">Multiple Game Types</div>
+        <div class="feature-desc">Jantri, Open, Crossing, No-to-No — play your favourite style and maximize your wins.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <div class="feature-title">Fully Secure</div>
+        <div class="feature-desc">Encrypted transactions, secure login, and full account protection so your money stays safe.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔔</div>
+        <div class="feature-title">Result Notifications</div>
+        <div class="feature-desc">Get instant notifications when results are declared, so you're always the first to know.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎁</div>
+        <div class="feature-title">Referral Bonus</div>
+        <div class="feature-desc">Invite friends and earn a commission on every bet they place. Grow your earnings together.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section" id="how">
+    <p class="section-tag">Get Started</p>
+    <h2>Simple. Fast. Rewarding.</h2>
+    <div class="how-grid">
+      <div class="how-step">
+        <div class="step-num">1</div>
+        <div class="step-title">Download App</div>
+        <div class="step-desc">Download the APK and install on your Android phone</div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">2</div>
+        <div class="step-title">Register</div>
+        <div class="step-desc">Create your account with your name and mobile number</div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">3</div>
+        <div class="step-title">Add Money</div>
+        <div class="step-desc">Deposit via UPI — fast approval by our admin team</div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">4</div>
+        <div class="step-title">Play & Win</div>
+        <div class="step-desc">Pick your market, place your bet, and watch results live</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOWNLOAD -->
+  <section class="section" id="download">
+    <div class="download-section">
+      <div style="font-size:60px;margin-bottom:20px">📱</div>
+      <div class="download-title">Download <span style="color:var(--green-light)">Our Empire</span></div>
+      <p class="download-sub">Free Android APK — No Play Store required. Just install and start playing!</p>
+      <!-- Replace the href below with your actual APK download link -->
+      <a href="OurEmpire.apk" class="btn-primary" id="apk-btn" download>
+        ⬇️ Download APK (Android)
+      </a>
+      <p class="apk-note">
+        Android 8.0+ required. Need help? <a href="#contact">Contact us on WhatsApp</a>
+      </p>
+      <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border)">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">To install:</p>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;font-size:12px;color:var(--muted)">
+          <span>1. Download APK</span>
+          <span>→</span>
+          <span>2. Open file</span>
+          <span>→</span>
+          <span>3. Allow "Install unknown apps"</span>
+          <span>→</span>
+          <span>4. Install & play!</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="section" id="contact">
+    <p class="section-tag">Support</p>
+    <h2>Need Help?</h2>
+    <p style="color:var(--muted);font-size:15px">Our support team is available 24/7. Reach us instantly.</p>
+    <div class="contact-cards">
+      <!-- Replace with your actual WhatsApp number -->
+      <a href="https://wa.me/919999999999" class="contact-card" target="_blank" rel="noopener">
+        <span class="icon">💬</span>
+        <span>WhatsApp Support</span>
+      </a>
+      <!-- Replace with your actual Telegram link -->
+      <a href="https://t.me/ourempire" class="contact-card" target="_blank" rel="noopener">
+        <span class="icon">✈️</span>
+        <span>Telegram Channel</span>
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 <strong>Our Empire</strong>. All rights reserved. | Play responsibly. 18+</p>
+    <p style="margin-top:8px">For support contact us on WhatsApp</p>
+  </footer>
+
+</body>
+</html>

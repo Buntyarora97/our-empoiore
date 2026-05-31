@@ -1,11 +1,12 @@
 import {
   useGetMarket,
+  useListMarketResults,
   usePlaceBet,
 } from '@workspace/api-client-react';
 import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -45,6 +46,15 @@ interface Market {
   } | null;
 }
 
+interface Result {
+  id: number;
+  marketId: number;
+  date: string;
+  openNumber?: string | null;
+  closeNumber?: string | null;
+  jodiNumber?: string | null;
+}
+
 const GAME_TYPES: { key: GameType; label: string; desc: string }[] = [
   { key: 'jantri', label: 'Jantri', desc: 'Single digit 0-9' },
   { key: 'open', label: 'Open', desc: '3-digit number' },
@@ -59,6 +69,256 @@ function numberPlaceholder(gameType: GameType) {
   return 'Number range';
 }
 
+function formatDate(dateStr: string) {
+  try {
+    const d = new Date(dateStr);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    if (d.toDateString() === today.toDateString()) return 'Today';
+    if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', weekday: 'short' });
+  } catch {
+    return dateStr;
+  }
+}
+
+function NumberFrequencyChart({ results }: { results: Result[] }) {
+  const colors = useColors();
+
+  const freq = useMemo(() => {
+    const map = new Map<string, number>();
+    results.forEach((r) => {
+      if (r.jodiNumber) {
+        const jodi = r.jodiNumber.trim();
+        map.set(jodi, (map.get(jodi) ?? 0) + 1);
+      }
+    });
+    return Array.from(map.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10);
+  }, [results]);
+
+  const maxCount = freq[0]?.[1] ?? 1;
+
+  if (freq.length === 0) return null;
+
+  return (
+    <View style={{
+      marginHorizontal: 16,
+      marginBottom: 16,
+      backgroundColor: colors.card,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: 'hidden',
+    }}>
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        backgroundColor: colors.muted,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+      }}>
+        <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: colors.foreground, letterSpacing: 0.5 }}>
+          🔥 HOT JODI NUMBERS
+        </Text>
+        <Text style={{ fontSize: 11, fontFamily: 'Inter_500Medium', color: colors.mutedForeground }}>
+          Last {results.length} records
+        </Text>
+      </View>
+      <View style={{ padding: 14, gap: 8 }}>
+        {freq.map(([num, count]) => (
+          <View key={num} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Text style={{
+              fontSize: 14,
+              fontFamily: 'Inter_700Bold',
+              color: colors.ring,
+              width: 36,
+              textAlign: 'center',
+            }}>{num}</Text>
+            <View style={{ flex: 1, height: 20, backgroundColor: colors.muted, borderRadius: 4, overflow: 'hidden' }}>
+              <View style={{
+                height: '100%',
+                width: `${(count / maxCount) * 100}%`,
+                backgroundColor: colors.primary,
+                borderRadius: 4,
+              }} />
+            </View>
+            <Text style={{
+              fontSize: 12,
+              fontFamily: 'Inter_600SemiBold',
+              color: colors.mutedForeground,
+              width: 36,
+              textAlign: 'right',
+            }}>{count}×</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function ResultHistoryTable({ results, isLoading }: { results: Result[]; isLoading: boolean }) {
+  const colors = useColors();
+
+  const sorted = [...results].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+
+  return (
+    <View style={{
+      marginHorizontal: 16,
+      marginBottom: 16,
+      backgroundColor: colors.card,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+      overflow: 'hidden',
+    }}>
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        backgroundColor: colors.muted,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+      }}>
+        <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: colors.foreground, letterSpacing: 0.5 }}>
+          📅 COMPLETE RESULT HISTORY
+        </Text>
+        {sorted.length > 0 && (
+          <View style={{ backgroundColor: colors.secondary, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 }}>
+            <Text style={{ fontSize: 11, fontFamily: 'Inter_600SemiBold', color: colors.primary }}>
+              {sorted.length} records
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {isLoading ? (
+        <View style={{ paddingVertical: 24, alignItems: 'center' }}>
+          <ActivityIndicator color={colors.primary} size="small" />
+        </View>
+      ) : sorted.length === 0 ? (
+        <Text style={{ textAlign: 'center', padding: 24, fontSize: 14, fontFamily: 'Inter_400Regular', color: colors.mutedForeground }}>
+          No results declared yet
+        </Text>
+      ) : (
+        <>
+          <View style={{
+            flexDirection: 'row',
+            paddingHorizontal: 14,
+            paddingVertical: 8,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+          }}>
+            <Text style={{ flex: 2, fontSize: 10, fontFamily: 'Inter_700Bold', color: colors.mutedForeground, letterSpacing: 0.8, textTransform: 'uppercase' }}>Date</Text>
+            <Text style={{ flex: 1, fontSize: 10, fontFamily: 'Inter_700Bold', color: colors.mutedForeground, letterSpacing: 0.8, textTransform: 'uppercase', textAlign: 'center' }}>Open</Text>
+            <Text style={{ flex: 1, fontSize: 10, fontFamily: 'Inter_700Bold', color: colors.mutedForeground, letterSpacing: 0.8, textTransform: 'uppercase', textAlign: 'center' }}>Jodi</Text>
+            <Text style={{ flex: 1, fontSize: 10, fontFamily: 'Inter_700Bold', color: colors.mutedForeground, letterSpacing: 0.8, textTransform: 'uppercase', textAlign: 'center' }}>Close</Text>
+          </View>
+          {sorted.map((r, i) => (
+            <View key={r.id} style={{
+              flexDirection: 'row',
+              paddingHorizontal: 14,
+              paddingVertical: 10,
+              borderBottomWidth: i < sorted.length - 1 ? 1 : 0,
+              borderBottomColor: colors.border,
+              alignItems: 'center',
+              backgroundColor: i % 2 === 1 ? colors.muted : colors.card,
+            }}>
+              <Text style={{ flex: 2, fontSize: 12, fontFamily: 'Inter_500Medium', color: colors.mutedForeground }}>
+                {formatDate(r.date)}
+              </Text>
+              <Text style={{ flex: 1, fontSize: 14, fontFamily: 'Inter_700Bold', color: colors.foreground, textAlign: 'center' }}>
+                {r.openNumber ?? '?'}
+              </Text>
+              <Text style={{ flex: 1, fontSize: 15, fontFamily: 'Inter_700Bold', color: colors.ring, textAlign: 'center', letterSpacing: 0.5 }}>
+                {r.jodiNumber ?? '??'}
+              </Text>
+              <Text style={{ flex: 1, fontSize: 14, fontFamily: 'Inter_700Bold', color: colors.foreground, textAlign: 'center' }}>
+                {r.closeNumber ?? '?'}
+              </Text>
+            </View>
+          ))}
+        </>
+      )}
+    </View>
+  );
+}
+
+function LuckyNumberWidget() {
+  const colors = useColors();
+  const [lucky, setLucky] = useState<string | null>(null);
+  const [isSpinning, setIsSpinning] = useState(false);
+
+  async function generateLucky() {
+    setIsSpinning(true);
+    setLucky(null);
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setTimeout(() => {
+      const jodi = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+      setLucky(jodi);
+      setIsSpinning(false);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }, 800);
+  }
+
+  return (
+    <View style={{
+      marginHorizontal: 16,
+      marginBottom: 16,
+      backgroundColor: colors.card,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.primary,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    }}>
+      <View>
+        <Text style={{ fontSize: 12, fontFamily: 'Inter_600SemiBold', color: colors.mutedForeground, letterSpacing: 0.8, marginBottom: 4 }}>
+          🍀 LUCKY JODI
+        </Text>
+        {isSpinning ? (
+          <ActivityIndicator color={colors.primary} size="small" />
+        ) : lucky ? (
+          <Text style={{ fontSize: 32, fontFamily: 'Inter_700Bold', color: colors.ring, letterSpacing: 4 }}>
+            {lucky}
+          </Text>
+        ) : (
+          <Text style={{ fontSize: 14, fontFamily: 'Inter_400Regular', color: colors.mutedForeground }}>
+            Tap to generate
+          </Text>
+        )}
+      </View>
+      <TouchableOpacity
+        style={{
+          backgroundColor: colors.secondary,
+          borderRadius: 8,
+          paddingHorizontal: 16,
+          paddingVertical: 10,
+          borderWidth: 1,
+          borderColor: colors.primary,
+        }}
+        onPress={generateLucky}
+        disabled={isSpinning}
+      >
+        <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: colors.primary }}>
+          {isSpinning ? '...' : lucky ? 'Retry' : 'Generate'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 export default function MarketDetailScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -69,6 +329,8 @@ export default function MarketDetailScreen() {
   const marketId = parseInt(id ?? '0', 10);
   const { data: marketData, isLoading } = useGetMarket(marketId);
   const market = marketData as Market | undefined;
+  const { data: resultsData, isLoading: resultsLoading } = useListMarketResults(marketId);
+  const results = (resultsData ?? []) as Result[];
 
   const { mutateAsync: placeBet, isPending: isPlacing } = usePlaceBet();
 
@@ -76,6 +338,7 @@ export default function MarketDetailScreen() {
   const [entries, setEntries] = useState<BetEntry[]>([]);
   const [numInput, setNumInput] = useState('');
   const [amtInput, setAmtInput] = useState('');
+  const [activeTab, setActiveTab] = useState<'bet' | 'chart'>('bet');
 
   useEffect(() => {
     if (market?.name) {
@@ -199,6 +462,24 @@ export default function MarketDetailScreen() {
       color: colors.ring,
       letterSpacing: 2,
     },
+    mainTabs: {
+      flexDirection: 'row',
+      marginHorizontal: 16,
+      backgroundColor: colors.muted,
+      borderRadius: 8,
+      padding: 3,
+      marginBottom: 16,
+    },
+    mainTab: {
+      flex: 1,
+      paddingVertical: 10,
+      alignItems: 'center',
+      borderRadius: 6,
+    },
+    mainTabText: {
+      fontSize: 13,
+      fontFamily: 'Inter_700Bold',
+    },
     gameTypeTabs: {
       flexDirection: 'row',
       marginHorizontal: 16,
@@ -276,13 +557,8 @@ export default function MarketDetailScreen() {
       color: colors.foreground,
       marginRight: 12,
     },
-    removeBtn: {
-      padding: 4,
-    },
-    removeBtnText: {
-      fontSize: 16,
-      color: colors.destructive,
-    },
+    removeBtn: { padding: 4 },
+    removeBtnText: { fontSize: 16, color: colors.destructive },
     totalBar: {
       marginHorizontal: 16,
       flexDirection: 'row',
@@ -309,7 +585,7 @@ export default function MarketDetailScreen() {
       borderRadius: colors.radius,
       paddingVertical: 15,
       alignItems: 'center',
-      marginBottom: insets.bottom + (Platform.OS === 'web' ? 34 : 16),
+      marginBottom: 16,
     },
     placeBtnDisabled: { opacity: 0.6 },
     placeBtnText: {
@@ -345,7 +621,13 @@ export default function MarketDetailScreen() {
 
   return (
     <View style={s.container}>
-      <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + (Platform.OS === 'web' ? 34 : 90),
+        }}
+      >
         {market && (
           <View style={s.marketInfo}>
             <View style={s.infoRow}>
@@ -359,9 +641,7 @@ export default function MarketDetailScreen() {
               </View>
               <View style={s.infoBlock}>
                 <Text style={s.infoLabel}>BET RANGE</Text>
-                <Text style={s.infoValue}>
-                  ₹{market.minBet}–₹{market.maxBet}
-                </Text>
+                <Text style={s.infoValue}>₹{market.minBet}–₹{market.maxBet}</Text>
               </View>
             </View>
             {market.todayResult && (
@@ -377,103 +657,114 @@ export default function MarketDetailScreen() {
           </View>
         )}
 
-        {isClosed ? (
-          <View style={s.closedBanner}>
-            <Text style={s.closedText}>Betting is currently closed</Text>
-          </View>
-        ) : (
-          <>
-            <View style={s.gameTypeTabs}>
-              {GAME_TYPES.map((g) => {
-                const active = activeGame === g.key;
-                return (
-                  <TouchableOpacity
-                    key={g.key}
-                    style={[
-                      s.gameTab,
-                      active && { backgroundColor: colors.card },
-                    ]}
-                    onPress={() => {
-                      setActiveGame(g.key);
-                      setEntries([]);
-                      setNumInput('');
-                      setAmtInput('');
-                    }}
-                  >
-                    <Text
-                      style={[
-                        s.gameTabText,
-                        { color: active ? colors.primary : colors.mutedForeground },
-                      ]}
-                    >
-                      {g.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+        {/* Main tabs: Bet | Chart */}
+        <View style={s.mainTabs}>
+          {(['bet', 'chart'] as const).map((t) => {
+            const active = activeTab === t;
+            return (
+              <TouchableOpacity
+                key={t}
+                style={[s.mainTab, active && { backgroundColor: colors.card }]}
+                onPress={() => setActiveTab(t)}
+              >
+                <Text style={[s.mainTabText, { color: active ? colors.primary : colors.mutedForeground }]}>
+                  {t === 'bet' ? '🎯 Place Bet' : '📊 Result Chart'}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
-            <View style={s.inputCard}>
-              <View style={s.inputRow}>
-                <TextInput
-                  style={[s.input, { flex: 1.5 }]}
-                  value={numInput}
-                  onChangeText={setNumInput}
-                  placeholder={numberPlaceholder(activeGame)}
-                  placeholderTextColor={colors.mutedForeground}
-                  keyboardType="default"
-                  maxLength={activeGame === 'jantri' ? 1 : 10}
-                />
-                <TextInput
-                  style={[s.input, { flex: 1 }]}
-                  value={amtInput}
-                  onChangeText={setAmtInput}
-                  placeholder={`₹${market?.minBet ?? '10'}`}
-                  placeholderTextColor={colors.mutedForeground}
-                  keyboardType="numeric"
-                />
-                <Pressable style={s.addBtn} onPress={addEntry}>
-                  <Text style={s.addBtnText}>ADD</Text>
-                </Pressable>
+        {activeTab === 'bet' ? (
+          isClosed ? (
+            <View style={s.closedBanner}>
+              <Text style={s.closedText}>🔒 Betting is currently closed</Text>
+            </View>
+          ) : (
+            <>
+              <View style={s.gameTypeTabs}>
+                {GAME_TYPES.map((g) => {
+                  const active = activeGame === g.key;
+                  return (
+                    <TouchableOpacity
+                      key={g.key}
+                      style={[s.gameTab, active && { backgroundColor: colors.card }]}
+                      onPress={() => { setActiveGame(g.key); setEntries([]); setNumInput(''); setAmtInput(''); }}
+                    >
+                      <Text style={[s.gameTabText, { color: active ? colors.primary : colors.mutedForeground }]}>
+                        {g.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
 
-              {entries.map((entry, i) => (
-                <View key={i} style={s.entryRow}>
-                  <Text style={s.entryNum}>{entry.number}</Text>
-                  <Text style={s.entryAmt}>₹{entry.amount}</Text>
-                  <Pressable style={s.removeBtn} onPress={() => removeEntry(i)}>
-                    <Text style={s.removeBtnText}>✕</Text>
+              <View style={s.inputCard}>
+                <View style={s.inputRow}>
+                  <TextInput
+                    style={[s.input, { flex: 1.5 }]}
+                    value={numInput}
+                    onChangeText={setNumInput}
+                    placeholder={numberPlaceholder(activeGame)}
+                    placeholderTextColor={colors.mutedForeground}
+                    keyboardType="default"
+                    maxLength={activeGame === 'jantri' ? 1 : 10}
+                  />
+                  <TextInput
+                    style={[s.input, { flex: 1 }]}
+                    value={amtInput}
+                    onChangeText={setAmtInput}
+                    placeholder={`₹${market?.minBet ?? '10'}`}
+                    placeholderTextColor={colors.mutedForeground}
+                    keyboardType="numeric"
+                  />
+                  <Pressable style={s.addBtn} onPress={addEntry}>
+                    <Text style={s.addBtnText}>ADD</Text>
                   </Pressable>
                 </View>
-              ))}
-            </View>
 
-            {entries.length > 0 && (
-              <View style={s.totalBar}>
-                <Text style={s.totalLabel}>
-                  {entries.length} bet{entries.length !== 1 ? 's' : ''} · Total
-                </Text>
-                <Text style={s.totalAmount}>₹{totalAmount.toFixed(2)}</Text>
+                {entries.map((entry, i) => (
+                  <View key={i} style={s.entryRow}>
+                    <Text style={s.entryNum}>{entry.number}</Text>
+                    <Text style={s.entryAmt}>₹{entry.amount}</Text>
+                    <Pressable style={s.removeBtn} onPress={() => removeEntry(i)}>
+                      <Text style={s.removeBtnText}>✕</Text>
+                    </Pressable>
+                  </View>
+                ))}
               </View>
-            )}
 
-            <Pressable
-              style={({ pressed }) => [
-                s.placeBtn,
-                (isPlacing || entries.length === 0) && s.placeBtnDisabled,
-                pressed && { opacity: 0.85 },
-              ]}
-              onPress={handlePlaceBet}
-              disabled={isPlacing || entries.length === 0}
-            >
-              {isPlacing ? (
-                <ActivityIndicator color={colors.primaryForeground} />
-              ) : (
-                <Text style={s.placeBtnText}>
-                  Place Bet{entries.length > 0 ? ` · ₹${totalAmount.toFixed(2)}` : ''}
-                </Text>
+              {entries.length > 0 && (
+                <View style={s.totalBar}>
+                  <Text style={s.totalLabel}>{entries.length} bet{entries.length !== 1 ? 's' : ''} · Total</Text>
+                  <Text style={s.totalAmount}>₹{totalAmount.toFixed(2)}</Text>
+                </View>
               )}
-            </Pressable>
+
+              <Pressable
+                style={({ pressed }) => [
+                  s.placeBtn,
+                  (isPlacing || entries.length === 0) && s.placeBtnDisabled,
+                  pressed && { opacity: 0.85 },
+                ]}
+                onPress={handlePlaceBet}
+                disabled={isPlacing || entries.length === 0}
+              >
+                {isPlacing ? (
+                  <ActivityIndicator color={colors.primaryForeground} />
+                ) : (
+                  <Text style={s.placeBtnText}>
+                    Place Bet{entries.length > 0 ? ` · ₹${totalAmount.toFixed(2)}` : ''}
+                  </Text>
+                )}
+              </Pressable>
+            </>
+          )
+        ) : (
+          <>
+            <LuckyNumberWidget />
+            <NumberFrequencyChart results={results} />
+            <ResultHistoryTable results={results} isLoading={resultsLoading} />
           </>
         )}
       </ScrollView>

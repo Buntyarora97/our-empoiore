@@ -352,6 +352,7 @@ router.get("/admin/transactions/withdrawals", requireAdmin, async (req, res): Pr
     transactions: filtered.map(t => ({
       id: t.id, userId: t.userId, type: t.type, amount: t.amount, status: t.status,
       method: t.method, utrNumber: t.utrNumber, adminNote: t.adminNote,
+      upiId: t.upiId ?? null, accountNumber: t.accountNumber ?? null, ifscCode: t.ifscCode ?? null,
       createdAt: t.createdAt.toISOString(), userName: userMap.get(t.userId) ?? null,
     })),
     total: totalRow?.count ?? 0,

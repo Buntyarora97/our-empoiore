@@ -41,6 +41,20 @@ interface Result {
   jodiNumber?: string | null;
 }
 
+function formatResultDate(dateStr: string) {
+  try {
+    const d = new Date(dateStr);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    if (d.toDateString() === today.toDateString()) return 'Today';
+    if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+  } catch {
+    return dateStr;
+  }
+}
+
 function StatusBadge({ status, isBettingOpen }: { status: string; isBettingOpen?: boolean }) {
   const colors = useColors();
   const isOpen = isBettingOpen || status === 'active';
@@ -220,24 +234,33 @@ const cardStyles = StyleSheet.create({
   },
 });
 
-function RecentResultRow({ result }: { result: Result }) {
+function ResultRow({ result, index }: { result: Result; index: number }) {
   const colors = useColors();
   return (
     <View
       style={[
         rrStyles.row,
         { borderBottomColor: colors.border },
+        index % 2 === 0 ? { backgroundColor: colors.background } : { backgroundColor: colors.muted },
       ]}
     >
       <Text style={[rrStyles.market, { color: colors.foreground }]} numberOfLines={1}>
         {result.marketName ?? `Market ${result.marketId}`}
       </Text>
       <Text style={[rrStyles.date, { color: colors.mutedForeground }]}>
-        {result.date}
+        {formatResultDate(result.date)}
       </Text>
-      <Text style={[rrStyles.result, { color: colors.ring }]}>
-        {result.openNumber ?? '?'}-{result.jodiNumber ?? '??'}-{result.closeNumber ?? '?'}
-      </Text>
+      <View style={rrStyles.resultBox}>
+        <Text style={[rrStyles.openNum, { color: colors.foreground }]}>
+          {result.openNumber ?? '?'}
+        </Text>
+        <Text style={[rrStyles.jodiNum, { color: colors.ring }]}>
+          {result.jodiNumber ?? '??'}
+        </Text>
+        <Text style={[rrStyles.closeNum, { color: colors.foreground }]}>
+          {result.closeNumber ?? '?'}
+        </Text>
+      </View>
     </View>
   );
 }
@@ -247,25 +270,40 @@ const rrStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     borderBottomWidth: 1,
   },
   market: {
-    flex: 1,
+    flex: 1.5,
     fontSize: 13,
     fontFamily: 'Inter_500Medium',
   },
   date: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'Inter_400Regular',
-    marginRight: 12,
+    marginRight: 8,
+    minWidth: 60,
   },
-  result: {
+  resultBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    minWidth: 90,
+    justifyContent: 'flex-end',
+  },
+  openNum: {
     fontSize: 14,
     fontFamily: 'Inter_700Bold',
-    letterSpacing: 1,
-    minWidth: 80,
-    textAlign: 'right',
+  },
+  jodiNum: {
+    fontSize: 15,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 0.5,
+    paddingHorizontal: 4,
+  },
+  closeNum: {
+    fontSize: 14,
+    fontFamily: 'Inter_700Bold',
   },
 });
 
@@ -280,10 +318,15 @@ export default function MarketsScreen() {
     header: {
       paddingHorizontal: 16,
       paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 12),
-      paddingBottom: 16,
+      paddingBottom: 14,
       backgroundColor: colors.card,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
     },
     headerTitle: {
       fontSize: 22,
@@ -297,16 +340,40 @@ export default function MarketsScreen() {
       color: colors.mutedForeground,
       marginTop: 2,
     },
+    liveDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.primary,
+      marginRight: 6,
+    },
+    liveText: {
+      fontSize: 11,
+      fontFamily: 'Inter_600SemiBold',
+      color: colors.primary,
+    },
+    liveRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
     sectionHeader: {
       paddingHorizontal: 16,
       paddingTop: 20,
       paddingBottom: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
     },
     sectionTitle: {
       fontSize: 13,
       fontFamily: 'Inter_700Bold',
       color: colors.mutedForeground,
       letterSpacing: 1,
+    },
+    sectionCount: {
+      fontSize: 11,
+      fontFamily: 'Inter_500Medium',
+      color: colors.mutedForeground,
     },
     loading: {
       flex: 1,
@@ -331,6 +398,21 @@ export default function MarketsScreen() {
       overflow: 'hidden',
       marginBottom: insets.bottom + (Platform.OS === 'web' ? 34 : 80),
     },
+    resultHeader: {
+      flexDirection: 'row',
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      backgroundColor: colors.muted,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    resultHeaderText: {
+      fontSize: 10,
+      fontFamily: 'Inter_700Bold',
+      color: colors.mutedForeground,
+      letterSpacing: 0.8,
+      textTransform: 'uppercase',
+    },
   });
 
   if (isLoading) {
@@ -342,12 +424,21 @@ export default function MarketsScreen() {
   }
 
   const marketList = (markets ?? []) as Market[];
-  const resultList = ((recentResults ?? []) as Result[]).slice(0, 10);
+  const resultList = ((recentResults ?? []) as Result[]).slice(0, 20);
+  const openMarkets = marketList.filter(m => m.isBettingOpen || m.status === 'active');
 
   return (
     <View style={s.container}>
       <View style={s.header}>
-        <Text style={s.headerTitle}>Our Empire</Text>
+        <View style={s.headerRow}>
+          <Text style={s.headerTitle}>Our Empire</Text>
+          {openMarkets.length > 0 && (
+            <View style={s.liveRow}>
+              <View style={s.liveDot} />
+              <Text style={s.liveText}>{openMarkets.length} LIVE</Text>
+            </View>
+          )}
+        </View>
         <Text style={s.headerSub}>Satta Matka Platform</Text>
       </View>
 
@@ -363,6 +454,7 @@ export default function MarketsScreen() {
       >
         <View style={s.sectionHeader}>
           <Text style={s.sectionTitle}>LIVE MARKETS</Text>
+          <Text style={s.sectionCount}>{marketList.length} markets</Text>
         </View>
 
         {marketList.length === 0 ? (
@@ -379,10 +471,16 @@ export default function MarketsScreen() {
           <>
             <View style={s.sectionHeader}>
               <Text style={s.sectionTitle}>RECENT RESULTS</Text>
+              <Text style={s.sectionCount}>Open · Jodi · Close</Text>
             </View>
             <View style={s.resultsCard}>
-              {resultList.map((r) => (
-                <RecentResultRow key={r.id} result={r} />
+              <View style={s.resultHeader}>
+                <Text style={[s.resultHeaderText, { flex: 1.5 }]}>Market</Text>
+                <Text style={[s.resultHeaderText, { minWidth: 60 }]}>Date</Text>
+                <Text style={[s.resultHeaderText, { minWidth: 90, textAlign: 'right' }]}>Result</Text>
+              </View>
+              {resultList.map((r, i) => (
+                <ResultRow key={r.id} result={r} index={i} />
               ))}
             </View>
           </>

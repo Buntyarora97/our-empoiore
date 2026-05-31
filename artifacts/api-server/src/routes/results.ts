@@ -7,7 +7,7 @@ const router: IRouter = Router();
 router.get("/results/recent", async (_req, res): Promise<void> => {
   const results = await db.select().from(resultsTable)
     .orderBy(desc(resultsTable.date), desc(resultsTable.createdAt))
-    .limit(20);
+    .limit(50);
 
   const markets = await db.select({ id: marketsTable.id, name: marketsTable.name }).from(marketsTable);
   const marketMap = new Map(markets.map(m => [m.id, m.name]));
